@@ -1,20 +1,35 @@
 #pragma once
 #include <string>
-#include <iostream>
+#include <algorithm>
+#include <exception>
+#include <stdexcept>
 
+enum class Cause : uint8_t
+{
+	nonOperator = 0,
+	onlyOneNumber
+};
+
+struct InvalidInput : std::exception
+{
+public:
+	InvalidInput(Cause cause): cause(cause) {}
+	Cause cause = Cause::nonOperator;
+private:
+};
 
 template <typename T>
 class Calculator
 {
 public:
-	T AddNumbers(std::string left, std::string right);
-	T SubstractNumbers(std::string left, std::string right);
-	T Execute(std::string action);
+	T Execute(std::string action) const;
 private:
+	T AddNumbers(std::string& left, std::string& right) const;
+	T SubstractNumbers(std::string& left, std::string& right) const;
 };
 
 template<typename T>
-inline T Calculator<T>::AddNumbers(std::string left, std::string right)
+inline T Calculator<T>::AddNumbers(std::string& left, std::string& right)  const
 {
 	bool leftCheck = false;
 	bool rightCheck = false;
@@ -44,28 +59,45 @@ inline T Calculator<T>::AddNumbers(std::string left, std::string right)
 }
 
 template<typename T>
-inline T Calculator<T>::SubstractNumbers(std::string left, std::string right)
+inline T Calculator<T>::SubstractNumbers(std::string& left, std::string& right) const
 {
 	return stoi(left) - stoi(right);
 }
 
 template<typename T>
-inline T Calculator<T>::Execute(std::string action)
+inline T Calculator<T>::Execute(std::string action) const
 {
-	auto it = std::find(action.begin(), action.end(), '+');
-	if (it != action.end())
+	std::string operators = "+-";
+	auto it = std::find_first_of(action.begin(), action.end(), operators.begin(), operators.end());
+	if (it != action.end() && it != action.begin() && it != (action.end() - 1))
 	{
 		int64_t pos = std::distance(action.begin(), it);
 		std::string left = action.substr(0, pos);
 		std::string right = action.substr(pos + 1, action.size() - (pos + 1));
-		return AddNumbers(left, right);
+		try
+		{
+			stoi(left);
+			stoi(right);
+		}
+		catch (const std::invalid_argument&)
+		{
+			throw(InvalidInput(Cause::onlyOneNumber));
+		}
+		if (*it == '+')
+		{
+			return AddNumbers(left, right);
+		}
+		else if (*it == '-')
+		{
+			return SubstractNumbers(left, right);
+		}
 	}
-	it = std::find(action.begin(), action.end(), '-');
-	if (it != action.end())
+	else if (it == action.end())
 	{
-		int64_t pos = std::distance(action.begin(), it);
-		std::string left = action.substr(0, pos);
-		std::string right = action.substr(pos + 1, action.size() - (pos + 1));
-		return SubstractNumbers(left, right);
+		throw(InvalidInput(Cause::nonOperator));
+	}
+	else if (it == action.begin() || it == (action.end()-1))
+	{
+		throw(InvalidInput(Cause::onlyOneNumber));
 	}
 }

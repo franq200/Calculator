@@ -16,5 +16,115 @@ TEST(CalculatorTests, Given2_1And3_44__WhenAddNumbersFunctionIsCalled__ThenItSho
 TEST(CalculatorTests, Given3And1__WhenSubstractNumbersFunctionIsCalled__ThenItShouldReturn2)
 {
 	Calculator<int> calculator;
-	EXPECT_NEAR(2, calculator.Execute("3-1"), 0.01);
+	EXPECT_EQ(2, calculator.Execute("3-1"));
+}
+
+TEST(CalculatorTests, Given3WithSpaceBeforeItAnd1__WhenSubstractNumbersFunctionIsCalled__ThenItShouldReturn2)
+{
+	Calculator<int> calculator;
+	EXPECT_EQ(2, calculator.Execute(" 3-1"));
+}
+
+TEST(CalculatorTests, GivenInputWithoutOperator__WhenExecuteFunctionIsCalled__ThenItShouldThrowInvalidInputWithCauseNonOperator)
+{
+	Calculator<int> calculator;
+	try
+	{
+		calculator.Execute("31.323");
+	}
+	catch (const InvalidInput& e)
+	{
+		EXPECT_EQ(e.cause, Cause::nonOperator);
+	}
+}
+
+TEST(CalculatorTests, GivenInputWithNothingBehindOperator__WhenExecuteFunctionIsCalled__ThenItShouldThrowInvalidInputWithCauseOnlyOneNumber)
+{
+	Calculator<int> calculator;
+	try
+	{
+		calculator.Execute("31+");
+	}
+	catch (const InvalidInput& e)
+	{
+		EXPECT_EQ(e.cause, Cause::onlyOneNumber);
+	}
+}
+
+TEST(CalculatorTests, GivenInputWithNothingBeforeOperator__WhenExecuteFunctionIsCalled__ThenItShouldThrowInvalidInputWithCauseOnlyOneNumber)
+{
+	Calculator<int> calculator;
+	try
+	{
+		calculator.Execute("+31");
+	}
+	catch (const InvalidInput& e)
+	{
+		EXPECT_EQ(e.cause, Cause::onlyOneNumber);
+	}
+}
+
+TEST(CalculatorTests, GivenInputWithNothingBeforeNumber__WhenExecuteFunctionIsCalled__ThenItShouldThrowInvalidInputWithCauseNonOperator)
+{
+	Calculator<int> calculator;
+	try
+	{
+		calculator.Execute(" 31");
+	}
+	catch (const InvalidInput& e)
+	{
+		EXPECT_EQ(e.cause, Cause::nonOperator);
+	}
+}
+
+TEST(CalculatorTests, GivenInputWithNothingAfterNumber__WhenExecuteFunctionIsCalled__ThenItShouldThrowInvalidInputWithCauseNonOperator)
+{
+	Calculator<int> calculator;
+	try
+	{
+		calculator.Execute("31 ");
+	}
+	catch (const InvalidInput& e)
+	{
+		EXPECT_EQ(e.cause, Cause::nonOperator);
+	}
+}
+
+TEST(CalculatorTests, GivenInputWithTwoOperatorsBeforeNumber__WhenExecuteFunctionIsCalled__ThenItShouldThrowInvalidInputWithCauseOnlyOneNumber)
+{
+	Calculator<int> calculator;
+	try
+	{
+		calculator.Execute("++31");
+	}
+	catch (const InvalidInput& e)
+	{
+		EXPECT_EQ(e.cause, Cause::onlyOneNumber);
+	}
+}
+
+TEST(CalculatorTests, GivenInputWithTwoOperatorsBehindNumber__WhenExecuteFunctionIsCalled__ThenItShouldThrowInvalidInputWithCauseOnlyOneNumber)
+{
+	Calculator<int> calculator;
+	try
+	{
+		calculator.Execute("31++");
+	}
+	catch (const InvalidInput& e)
+	{
+		EXPECT_EQ(e.cause, Cause::onlyOneNumber);
+	}
+}
+
+TEST(CalculatorTests, GivenInputWithSpaceBeforeOperators__WhenExecuteFunctionIsCalled__ThenItShouldThrowInvalidInputWithCauseOnlyOneNumber)
+{
+	Calculator<int> calculator;
+	try
+	{
+		calculator.Execute(" +31");
+	}
+	catch (const InvalidInput& e)
+	{
+		EXPECT_EQ(e.cause, Cause::onlyOneNumber);
+	}
 }
