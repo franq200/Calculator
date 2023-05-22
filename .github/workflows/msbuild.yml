@@ -46,4 +46,4 @@ jobs:
     - name: Run unit tests
       id: run_tests
       working-directory: ${{env.OUTPUT_DIRECTORY_PATH}}
-      run: Start-Process -FilePath "Sample-Test2.exe" -Wait
+      run: Start-Process -FilePath "Sample-Test1.exe" -Wait
