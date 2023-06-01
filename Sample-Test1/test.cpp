@@ -25,6 +25,42 @@ TEST(CalculatorTests, Given3WithSpaceBeforeItAnd1__WhenSubstractNumbersFunctionI
 	EXPECT_EQ(2, calculator.Execute(" 3-1"));
 }
 
+TEST(CalculatorTests, Given4And2__WhenDivideFunctionIsCalled__ThenItShouldReturn2)
+{
+	Calculator<int> calculator;
+	EXPECT_EQ(2, calculator.Execute("4/2"));
+}
+
+TEST(CalculatorTests, Given4_2And2_1__WhenDivideFunctionIsCalled__ThenItShouldReturn2)
+{
+	Calculator<float> calculator;
+	EXPECT_NEAR(2, calculator.Execute("4.2/2.1"), 0.01);
+}
+
+TEST(CalculatorTests, Given4_2And2__WhenDivideFunctionIsCalled__ThenItShouldReturn2_1)
+{
+	Calculator<float> calculator;
+	EXPECT_NEAR(2.2, calculator.Execute("4.4/2"), 0.01);
+}
+
+TEST(CalculatorTests, Given4And2__WhenMultiplyFunctionIsCalled__ThenItShouldReturn8)
+{
+	Calculator<int> calculator;
+	EXPECT_EQ(8, calculator.Execute("4*2"));
+}
+
+TEST(CalculatorTests, Given4_2And2_1__WhenMultiplyFunctionIsCalled__ThenItShouldReturn9_24)
+{
+	Calculator<float> calculator;
+	EXPECT_NEAR(9.24, calculator.Execute("4.4*2.1"), 0.01);
+}
+
+TEST(CalculatorTests, Given4_2And2__WhenMultiplyFunctionIsCalled__ThenItShouldReturn8_8)
+{
+	Calculator<float> calculator;
+	EXPECT_NEAR(8.8, calculator.Execute("4.4*2"), 0.01);
+}
+
 TEST(CalculatorTests, GivenInputWithoutOperator__WhenExecuteFunctionIsCalled__ThenItShouldThrowInvalidInputWithCauseNonOperator)
 {
 	Calculator<int> calculator;

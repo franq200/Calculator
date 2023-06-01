@@ -24,12 +24,43 @@ class Calculator
 public:
 	T Execute(std::string action) const;
 private:
-	T AddNumbers(std::string& left, std::string& right) const;
-	T SubstractNumbers(std::string& left, std::string& right) const;
+	T AddNumbers(std::pair<T, T> values) const;
+	T SubstractNumbers(std::pair<T, T> values) const;
+	T Divide(std::pair<T, T> values) const;
+	T Multiply(std::pair<T, T> values) const;
+	std::pair<T, T> StringToInt(std::string& left, std::string& right) const;
 };
 
 template<typename T>
-inline T Calculator<T>::AddNumbers(std::string& left, std::string& right)  const
+inline T Calculator<T>::AddNumbers(std::pair<T, T> values)  const
+{
+	
+	return values.first + values.second;
+}
+
+template<typename T>
+inline T Calculator<T>::SubstractNumbers(std::pair<T, T> values) const
+{
+	
+	return values.first - values.second;
+}
+
+template<typename T>
+inline T Calculator<T>::Divide(std::pair<T, T> values) const
+{
+	
+	return values.first / values.second;
+}
+
+template<typename T>
+inline T Calculator<T>::Multiply(std::pair<T, T> values) const
+{
+	
+	return values.first * values.second;
+}
+
+template<typename T>
+inline std::pair<T, T> Calculator<T>::StringToInt(std::string& left, std::string& right) const
 {
 	bool leftCheck = false;
 	bool rightCheck = false;
@@ -55,19 +86,13 @@ inline T Calculator<T>::AddNumbers(std::string& left, std::string& right)  const
 	{
 		rightValue = std::stoi(right);
 	}
-	return leftValue + rightValue;
-}
-
-template<typename T>
-inline T Calculator<T>::SubstractNumbers(std::string& left, std::string& right) const
-{
-	return stoi(left) - stoi(right);
+	return std::pair<T, T>(leftValue, rightValue);
 }
 
 template<typename T>
 inline T Calculator<T>::Execute(std::string action) const
 {
-	std::string operators = "+-";
+	std::string operators = "+-/*";
 	auto it = std::find_first_of(action.begin(), action.end(), operators.begin(), operators.end());
 	if (it != action.end() && it != action.begin() && it != (action.end() - 1))
 	{
@@ -85,11 +110,19 @@ inline T Calculator<T>::Execute(std::string action) const
 		}
 		if (*it == '+')
 		{
-			return AddNumbers(left, right);
+			return AddNumbers(StringToInt(left, right));
 		}
 		else if (*it == '-')
 		{
-			return SubstractNumbers(left, right);
+			return SubstractNumbers(StringToInt(left, right));
+		}
+		else if (*it == '*')
+		{
+			return Multiply(StringToInt(left, right));
+		}
+		else if (*it == '/')
+		{
+			return Divide(StringToInt(left, right));
 		}
 	}
 	else if (it == action.end())
