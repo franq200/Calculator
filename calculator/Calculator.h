@@ -60,12 +60,9 @@ inline T Calculator<T>::Multiply(const std::pair<T, T>& values) const
 template<typename T>
 inline bool Calculator<T>::IsStringCorrectNumber(std::string& string) const
 {
-	std::remove_if(string.begin(), string.end(), isspace);
+	string.erase(std::remove_if(string.begin(), string.end(), isspace), string.end());
 	std::regex regexCheck("[+-]?([0-9]*[.])?[0-9]+");
-	bool m = false;
-	std::regex_constants::match_flag_type flags = std::regex_constants::match_default;
-	std::regex_search(string.begin(), string.end(), regexCheck, flags);
-	return !m;
+	return std::regex_search(string.begin(), string.end(), regexCheck);
 }
 
 template<typename T>
