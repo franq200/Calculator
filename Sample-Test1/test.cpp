@@ -61,6 +61,12 @@ TEST(CalculatorTests, Given4_2And2__WhenMultiplyFunctionIsCalled__ThenItShouldRe
 	EXPECT_NEAR(8.8, calculator.Execute("4.4*2"), 0.01);
 }
 
+TEST(CalculatorTests, Given4And2_2__WhenMultiplyFunctionIsCalled__ThenItShouldReturn8_8)
+{
+	Calculator<float> calculator;
+	EXPECT_NEAR(8.8, calculator.Execute("4*2.2"), 0.01);
+}
+
 TEST(CalculatorTests, GivenInputWithoutOperator__WhenExecuteFunctionIsCalled__ThenItShouldThrowInvalidInputWithCauseNonOperator)
 {
 	Calculator<int> calculator;
@@ -158,6 +164,19 @@ TEST(CalculatorTests, GivenInputWithSpaceBeforeOperators__WhenExecuteFunctionIsC
 	try
 	{
 		calculator.Execute(" +31");
+	}
+	catch (const InvalidInput& e)
+	{
+		EXPECT_EQ(e.cause, Cause::onlyOneNumber);
+	}
+}
+
+TEST(CalculatorTests, GivenInputWithTwoPointsBetweenOneNumber__WhenExecuteFunctionIsCalled__ThenItShouldThrowInvalidInputWithCauseOnlyOneNumber)
+{
+	Calculator<int> calculator;
+	try
+	{
+		calculator.Execute("1..2+31");
 	}
 	catch (const InvalidInput& e)
 	{
