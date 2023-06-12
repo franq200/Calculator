@@ -4,11 +4,21 @@
 #include <exception>
 #include <stdexcept>
 #include <regex>
+#include <map>
+#include <functional>
 
 enum class Cause : uint8_t
 {
 	nonOperator = 0,
-	onlyOneNumber
+	onlyOneNumber,
+	wrongAmountOfBrackets,
+	wrongAmountOfOperators
+};
+
+enum class Side : uint8_t
+{
+	left,
+	right
 };
 
 struct InvalidInput : std::exception
@@ -25,13 +35,44 @@ class Calculator
 public:
 	T Execute(std::string action) const;
 private:
+	std::pair<char, int> GetOperator(const std::string& action) const;
+	Side SideOfBracket(const int open, const int close, const std::string& action) const;
 	T AddNumbers(const std::pair<T, T>& values) const;
 	T SubstractNumbers(const std::pair<T, T>& values) const;
 	T Divide(const std::pair<T, T>& values) const;
 	T Multiply(const std::pair<T, T>& values) const;
 	bool IsStringCorrectNumber(std::string& string) const;
-	std::pair<T, T> StringToT(std::string& left, std::string& right) const;
+	//std::pair<T, T> StringToT(std::string& left, std::string& right) const;
+	T StringToT(std::string string) const;
+	std::map<char, std::function<T(const Calculator&, const std::pair<T, T>&)>> m_operatorsMap = {
+		{'+', &Calculator::AddNumbers}, {'-', &Calculator::SubstractNumbers}, {'*', &Calculator::Multiply}, {'/', &Calculator::Divide} };
 };
+
+template<typename T>
+inline std::pair<char, int> Calculator<T>::GetOperator(const std::string& action) const
+{
+	auto it = std::find_first_of(action.begin(), action.end(), m_operatorsMap.begin(), m_operatorsMap.end(), [](const auto& el1, const auto& el2) {return el1 == el2.first; });
+
+	if (it != action.end() && it != action.begin() && it != (action.end() - 1))
+	{
+		return {*it, std::distance(action.begin(), it)};
+	}
+	else if (it == action.end())
+	{
+		throw(InvalidInput(Cause::nonOperator));
+	}
+	throw(InvalidInput(Cause::onlyOneNumber));
+}
+
+template<typename T>
+inline Side Calculator<T>::SideOfBracket(const int open, const int close, const std::string& action) const
+{
+	if (close == action.size() - 1)
+	{
+		return Side::right;
+	}
+	return Side::left;
+}
 
 template<typename T>
 inline T Calculator<T>::AddNumbers(const std::pair<T, T>& values)  const
@@ -64,7 +105,7 @@ inline bool Calculator<T>::IsStringCorrectNumber(std::string& string) const
 	std::regex regexCheck("[+-]?([0-9]*[.])?[0-9]+");
 	return std::regex_search(string.begin(), string.end(), regexCheck);
 }
-
+/*
 template<typename T>
 inline std::pair<T, T> Calculator<T>::StringToT(std::string& left, std::string& right) const
 {
@@ -94,39 +135,89 @@ inline std::pair<T, T> Calculator<T>::StringToT(std::string& left, std::string& 
 	}
 	return std::pair<T, T>(leftValue, rightValue);
 }
+*/
+template<typename T>
+inline T Calculator<T>::StringToT(std::string string) const
+{
+	T leftValue = 0;
+	auto pos = std::find(string.begin(), string.end(), '.');
+	if (pos != string.end())
+	{
+		return std::stof(string);
+	}
+	return std::stoi(string);
+}
 
 template<typename T>
 inline T Calculator<T>::Execute(std::string action) const
 {
-	std::string operators = "+-/*";
-	auto it = std::find_first_of(action.begin(), action.end(), operators.begin(), operators.end());
+	int openAmount = std::count_if(action.begin(), action.end(), [](const auto& el) {return el == '('; });
+	int closeAmount = std::count_if(action.begin(), action.end(), [](const auto& el) {return el == ')'; });
+	if (openAmount >= 2 || closeAmount >= 2)
+	{
+		throw(InvalidInput(Cause::wrongAmountOfBrackets));
+	}
+	else if (openAmount != closeAmount)
+	{
+		throw(InvalidInput(Cause::wrongAmountOfBrackets));
+	}
+	else if (openAmount == 1 && closeAmount == 1) // s¹ nawiasy
+	{
+		if (std::count_if(action.begin(), action.end(), [](const auto& el) {return el == '+' || el == '-' || el == '*' || el == '/'; }) != 2)
+		{
+			throw(InvalidInput(Cause::wrongAmountOfOperators));
+		}
+		int closePos = action.find(')', 0);
+		int openPos = action.find('(', 0);
+		std::string expression = action.substr(openPos + 1, closePos - (openPos + 1));
+		if (!IsStringCorrectNumber(expression))
+		{
+			throw(InvalidInput(Cause::onlyOneNumber));
+		}
+		T value = Execute(action.substr(openPos + 1, closePos - (openPos + 1)));
+		Side bracketSide = SideOfBracket(openPos, closePos, action);
+		std::pair<T, T> values;
+		if (bracketSide == Side::left)
+		{
+			values.first = value;
+			values.second = StringToT(action.substr(closePos + 2));
+		}
+		else if (bracketSide == Side::right)
+		{
+			values.first = StringToT(action.substr(0, openPos - 1));
+			values.second = value;
+		}
+		auto [mathOperator, pos] = bracketSide == Side::right ? GetOperator(action) : GetOperator(action.substr(closePos));
+		return m_operatorsMap.at(mathOperator)(*this, values);
+	}
+	else
+	{
+		auto [mathOperator, pos] = GetOperator(action);
+		std::string left = action.substr(0, pos);
+		std::string right = action.substr(pos + 1, action.size() - (pos + 1));
+
+		if (!IsStringCorrectNumber(left) || !IsStringCorrectNumber(right))
+		{
+			throw(InvalidInput(Cause::onlyOneNumber));
+		}
+		std::pair<T, T> pair(StringToT(left), StringToT(right));
+		return m_operatorsMap.at(mathOperator)(*this, pair);
+		return T();
+	}
+
+	/*
+	auto it = std::find_first_of(action.begin(), action.end(), m_operatorsMap.begin(), m_operatorsMap.end(), [](const auto& el1, const auto& el2) {return el1 == el2.first; });
 	if (it != action.end() && it != action.begin() && it != (action.end() - 1))
 	{
 		int64_t pos = std::distance(action.begin(), it);
 		std::string left = action.substr(0, pos);
 		std::string right = action.substr(pos + 1, action.size() - (pos + 1));
-		
+
 		if (!IsStringCorrectNumber(left) || !IsStringCorrectNumber(right))
 		{
 			throw(InvalidInput(Cause::onlyOneNumber));
 		}
-
-		if (*it == '+')
-		{
-			return AddNumbers(StringToT(left, right));
-		}
-		else if (*it == '-')
-		{
-			return SubstractNumbers(StringToT(left, right));
-		}
-		else if (*it == '*')
-		{
-			return Multiply(StringToT(left, right));
-		}
-		else if (*it == '/')
-		{
-			return Divide(StringToT(left, right));
-		}
+		return m_operatorsMap.at(*it)(*this, StringToT(left, right));
 	}
 	else if (it == action.end())
 	{
@@ -136,4 +227,6 @@ inline T Calculator<T>::Execute(std::string action) const
 	{
 		throw(InvalidInput(Cause::onlyOneNumber));
 	}
+	return T();
+	*/
 }

@@ -183,3 +183,27 @@ TEST(CalculatorTests, GivenInputWithTwoPointsBetweenOneNumber__WhenExecuteFuncti
 		EXPECT_EQ(e.cause, Cause::onlyOneNumber);
 	}
 }
+
+TEST(CalculatorTests, Given4Minus3AllMultipledBy5__WhenExecuteFunctionIsCalled__ThenItShouldReturn5)
+{
+	Calculator<int> calculator;
+	EXPECT_EQ(5, calculator.Execute("(4-3)*5"));
+}
+
+TEST(CalculatorTests, Given4Minus3AllMultipledBy5__WhenExecuteFunctionIsCalled__ThenItShouldReturn6)
+{
+	Calculator<int> calculator;
+	EXPECT_EQ(6, calculator.Execute("5+(4-3)"));
+}
+
+TEST(CalculatorTests, Given4Minus3AllMultipledBy5__WhenExecuteFunctionIsCalled__ThenItShouldReturn2)
+{
+	Calculator<int> calculator;
+	EXPECT_EQ(2, calculator.Execute("3-(1*1)"));
+}
+
+TEST(CalculatorTests, Given2Minus4AllDividedBy4__WhenExecuteFunctionIsCalled__ThenItShouldReturn2)
+{
+	Calculator<int> calculator;
+	EXPECT_EQ(2, calculator.Execute("(2*4)/4"));
+}
